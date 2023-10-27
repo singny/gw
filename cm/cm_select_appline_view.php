@@ -1396,15 +1396,6 @@ function onBtnALSearchPjtMemberClick() {
                                 <ul id="listOper" class="selUserDeptList"></ul>
                             </div>
                         </div>
-                        <div class="row" id="divRowReceipDept" style="padding-right: 15px;padding-left: 15px;display:none">
-                            <div class="col-md-2 p-0 divBtnListSelectAppLine">
-                                <button type="button" class="btn btn-info" id="btnAddReceipDept" name="btnAddReceipDept">수신부서 <i class="fas fa-angle-right"></i><i class="fa-solid fa-angle-down"></i></button>
-                            </div>
-                            <div class="col-md-10" style="min-height: 16.5rem;">
-                                <span class="colHeader">수신부서</span>
-                                <ul id="listReceipDept" class="selUserDeptList"></ul>
-                            </div>
-                        </div>
                         <div class="row" id="divRowReceip" style="padding-right: 15px;padding-left: 15px;">
                             <div class="col-md-2 p-0 divBtnListSelectAppLine">
                                 <button type="button" class="btn btn-info" id="btnAddReceip" name="btnAddReceip">수신참조 <i class="fas fa-angle-right"></i><i class="fa-solid fa-angle-down"></i></button>
@@ -1412,6 +1403,15 @@ function onBtnALSearchPjtMemberClick() {
                             <div class="col-md-10" style="min-height: 16.5rem;">
                                 <span class="colHeader">수신참조</span>
                                 <ul id="listReceip" class="selUserDeptList"></ul>
+                            </div>
+                        </div>
+                        <div class="row" id="divRowReceipDept" style="padding-right: 15px;padding-left: 15px;display:none">
+                            <div class="col-md-2 p-0 divBtnListSelectAppLine">
+                                <button type="button" class="btn btn-info" id="btnAddReceipDept" name="btnAddReceipDept">수신부서 <i class="fas fa-angle-right"></i><i class="fa-solid fa-angle-down"></i></button>
+                            </div>
+                            <div class="col-md-10" style="min-height: 16.5rem;">
+                                <span class="colHeader">수신부서</span>
+                                <ul id="listReceipDept" class="selUserDeptList"></ul>
                             </div>
                         </div>
                     </div>
