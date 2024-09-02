@@ -1,0 +1,452 @@
+USE [Neo_BizBox_20210107]
+GO
+/****** Object:  StoredProcedure [dbo].[PSM_USERDEPT_0300900_Detail_U]    Script Date: 2024-09-02 오후 4:01:52 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+/******************************************************************************
+ 작 성 자 : 이종환
+ 작 성 일 : 2009-06-01
+ 수 정 자 : 
+ 수 정 일 : 
+ 설    명 : 사원정보 수정
+ 수정설명 : 
+ 실    행 : 
+ 실행 Com : 
+*******************************************************************************/
+
+ALTER PROC [dbo].[PSM_USERDEPT_0300900_Detail_U]
+(
+		  @nGrpID			AS INT
+		, @nCreateUserID	AS INT
+		-- 사원 정보		
+		, @nUserNM			AS NVARCHAR(50)
+		, @nLogonCD			AS NVARCHAR(50)
+		, @nLogonPwd		AS NVARCHAR(200)	
+		, @nIdnNO			AS NVARCHAR(255)
+		, @nEnterDT			AS NVARCHAR(10)
+		, @nSex				AS NVARCHAR(10)
+		, @nEmailID			AS NVARCHAR(50)
+		, @nTel1			AS NVARCHAR(10)
+		, @nTel2			AS NVARCHAR(10)
+		, @nTel3			AS NVARCHAR(10)
+		, @nMobile1			AS NVARCHAR(10)
+		, @nMobile2			AS NVARCHAR(10)
+		, @nMobile3			AS NVARCHAR(10)
+		, @nZipCD			AS NVARCHAR(10)
+		, @nZipAddr			AS NVARCHAR(200)
+		, @nDetailAddr		AS NVARCHAR(200)
+		, @nCharBiz			AS NVARCHAR(200)
+		, @nLangKind		AS NVARCHAR(20)
+		-- 부서 정보
+		, @nCoID			AS INT
+		, @nDeptID			AS INT
+		, @nGrade			AS NVARCHAR(50)
+		, @nDuty			AS NVARCHAR(50)
+		, @nErpEmpNo		AS NVARCHAR(50)
+		, @nTelCO1			AS NVARCHAR(10)
+		, @nTelCO2			AS NVARCHAR(10)
+		, @nTelCO3			AS NVARCHAR(10)
+		, @nTelCO4			AS NVARCHAR(10)
+		, @nFax1			AS NVARCHAR(10)
+		, @nFax2			AS NVARCHAR(10)
+		, @nFax3			AS NVARCHAR(10)
+		, @nZipCDCO			AS NVARCHAR(10)
+		, @nZipAddrCO		AS NVARCHAR(200)
+		, @nDetailAddrCO	AS NVARCHAR(200)
+		, @nDivAttend		AS NVARCHAR(20)
+		-- 메일, 웹하드 용량
+		, @nMailSize		AS NVARCHAR(10)
+		, @nHDDSize			AS NVARCHAR(10)
+		-- 권한 설정
+		, @nRoleID			AS NVARCHAR(4000)
+		-- 사진, 사인
+		, @nFilePic			AS NVARCHAR(100)
+		, @nFileSign		AS NVARCHAR(100)
+		-- 사원번호
+		, @nUserID			AS INT
+		, @nMsgYN			AS NVARCHAR(1)
+		, @nPWChkYN			AS NVARCHAR(1) = '0'
+		, @nGwUserLevel     AS INT = 0 --그룹웨어:0, 메일 1, 메신저 2
+		, @nGwUserDiv		AS INT = 0
+		, @sHoldOffice      AS NVARCHAR(10)
+		, @nMarryYN			AS NCHAR(1) = '0'
+		, @nMarryDT			AS NVARCHAR(8) = ''
+		, @nIPPONEID		AS NVARCHAR(30) = ''
+		, @nIPPONEPW		AS NVARCHAR(30) = ''
+		, @nIPPONECMPW		AS NVARCHAR(30) = ''
+		, @nSMSLimit		AS INT = 0
+		, @nOutEmail		AS NVARCHAR(50) = ''
+		, @sfire_yn			AS NVARCHAR(30) = '1'
+		, @sMobileGwUseYn   AS NVARCHAR(30) = '1'
+		, @nIdnNOEnc		AS NVARCHAR(255) = ''
+		, @sBirthDT	    AS NVARCHAR(8)  =''
+)
+AS
+
+SET NOCOUNT ON
+
+IF @nIdnNOEnc = ''
+BEGIN
+	SET @nIdnNOEnc = @nIdnNO
+END
+
+DECLARE @nReturn	INT
+SET @nReturn = 0
+	
+DECLARE @nErr		AS INT
+SET @nErr		= 0
+
+DECLARE @IDN_NO_ENC_YN NVARCHAR(1)
+SET @IDN_NO_ENC_YN = '0'
+
+SELECT @IDN_NO_ENC_YN = ISNULL(IDN_NO_YN, '0')
+FROM TCMG_USER_ISP
+
+SELECT @IDN_NO_ENC_YN = ISNULL(@IDN_NO_ENC_YN, '0')
+
+BEGIN TRAN
+	
+/*********************** 사원 업데이트 시작 ***********************/
+UPDATE TCMG_USER
+SET   user_nm			= @nUserNM
+	, logon_pwd			= CASE WHEN @nLogonPwd = '' THEN logon_pwd ELSE @nLogonPwd END
+	, idn_no			= @nIdnNOEnc	
+	--, birth_dt			= CASE WHEN ISNULL(LTRIM(birth_dt), '') = '' THEN (CASE WHEN LEN(@nIdnNO) > 6 THEN (CASE WHEN (LEN(@nIdnNO) > 8 AND (SUBSTRING(@nIdnNO,8,1) = 3 OR SUBSTRING(@nIdnNO,8,1) = 4)) THEN '20' + LEFT(@nIdnNO, 6) ELSE '19' + LEFT(@nIdnNO, 6) END) ELSE '' END) ELSE '' END		
+	, birth_dt          = @sBirthDT
+	, enter_dt			= @nEnterDT			
+	, sex				= @nSex						
+	--, photo_nm			= CASE WHEN @nFilePic = '' THEN photo_nm ELSE @nFilePic END
+	, photo_nm			= @nFilePic
+	--, sign_nm			= CASE WHEN @nFileSign = '' THEN sign_nm ELSE @nFileSign END
+	, sign_nm			= @nFileSign
+	, tel1				= @nTel1
+	, tel2				= @nTel2
+	, tel3				= @nTel3			
+	, mobile1			= @nMobile1
+	, mobile2			= @nMobile2
+	, mobile3			= @nMobile3
+	, zip_cd			= @nZipCD
+	, zip_addr			= @nZipAddr
+	, detail_addr		= @nDetailAddr
+	, char_biz			= @nCharBiz			
+	, lang_kind			= @nLangKind
+	, msg_yn			= @nMsgYN
+	, PW_CHK_YN			= @nPWChkYN
+	, GW_USER_LEVEL     = @nGwUserLevel
+	, USER_DIV			= @nGwUserDiv
+	, marry_yn			= @nMarryYN
+	, marry_dt			= @nMarryDT
+	, ippone_id			= @nIPPONEID
+	, ippone_pw			= @nIPPONEPW
+	, ippone_cm_pwd		= @nIPPONECMPW
+	, sms_limit			= @nSMSLimit
+	, cnt_pwd_error		= 0 -- 사원정보 변경시 로그인통제 풀림
+    , out_email         = @nOutEmail
+    , mobilegw_use_yn   = @sMobileGwUseYn
+    , idnno_encyn		= @IDN_NO_ENC_YN
+WHERE user_id = @nUserID		
+	  
+IF @@ERROR > 0
+BEGIN
+	ROLLBACK TRAN
+	SET @nReturn = -97 -- 사원등록 중 오류 발생
+	SET @nErr	= 1
+--			RETURN @nReturn 
+END
+ELSE
+BEGIN
+	SET @nReturn = @nUserID
+END
+
+IF @nErr = 0
+BEGIN
+	IF (@nGwUserLevel > 0) --메일사용자이고 사용이면
+	BEGIN
+		UPDATE TCMG_USER
+		SET   fire_yn = 0
+			, GW_USER_USE_YN = 1
+		WHERE user_id = @nUserID
+	END
+	ELSE
+	BEGIN
+		UPDATE TCMG_USER
+		SET   fire_yn = 1
+			, GW_USER_USE_YN = 1
+		WHERE user_id = @nUserID
+	END
+
+	--메일사용자이고 미사용이라면
+	IF (@nGwUserLevel > 0 AND @sfire_yn = '0')
+	BEGIN
+		UPDATE TCMG_USER
+		SET   fire_yn = 0
+			, GW_USER_USE_YN = 0 --미사용처리
+		WHERE user_id = @nUserID
+	END
+	ELSE IF (@nGwUserLevel > 0 AND @sfire_yn = '1') --메일사용자이고 사용이면
+	BEGIN
+		UPDATE TCMG_USER
+		SET   fire_yn = 0
+			, GW_USER_USE_YN = 1
+		WHERE user_id = @nUserID
+	END
+	ELSE
+	BEGIN
+		UPDATE TCMG_USER
+		SET   fire_yn = @sfire_yn
+			, GW_USER_USE_YN = @sfire_yn
+		WHERE user_id = @nUserID		
+	END
+
+	IF @@ERROR > 0
+	BEGIN
+		ROLLBACK TRAN
+		SET @nReturn = -97 -- 사원등록 중 오류 발생
+		SET @nErr	= 1
+--		RETURN @nReturn 
+	END
+	ELSE
+	BEGIN
+		SET @nReturn = @nUserID
+	END
+END		
+
+		/*********************** 사원 업데이트 끝 ***********************/		
+		/*********************** 부서 매핑 시작 ***********************/
+IF @nErr = 0
+BEGIN
+	DECLARE @nDeptWorkID	AS INT
+
+	SELECT @nDeptWorkID = dept_id
+	FROM dbo.FCMT_DeptParent(@nDeptID) 
+	WHERE co_work_dept_kind = 'W'
+		
+	UPDATE TCMG_USERDEPT
+	SET  dept_id =	@nDeptID
+		, grade = @nGrade
+		, duty = @nDuty
+		, DeptWork_ID =	@nDeptWorkID
+		, erp_emp_no = @nErpEmpNo			
+		, tel1 = @nTelCO1
+		, tel2 = @nTelCO2
+		, tel3 = @nTelCO3
+		, tel4 = @nTelCO4
+		, fax1 = @nFax1
+		, fax2 = @nFax2
+		, fax3 = @nFax3
+		, zip_cd = @nZipCDCO
+		, zip_addr = @nZipAddrCO
+		, detail_addr =	@nDetailAddrCO
+		, enter_dt = @nEnterDT
+		, div_attend = @nDivAttend
+		, edited_dt = getdate()
+		, edited_by = @nCreateUserID	
+		, hold_office	    = @sHoldOffice	
+	WHERE user_id =	@nUserID
+		AND co_id = @nCoID
+
+	IF @@ERROR > 0
+	BEGIN			
+		ROLLBACK TRAN
+		SET @nReturn = -95 -- 부서매핑 중 오류 발생
+		SET @nErr	= 1
+--		RETURN @nReturn
+	END
+	ELSE
+	BEGIN
+		-- 사원이 매핑되면 1로 변경
+		UPDATE TCMG_DEPT
+		SET leaf_yn = 1
+		WHERE  dept_id = @nDeptID
+	END
+END
+		/*********************** 부서 매핑 끝 ***********************/
+		/*********************** 메일 등록 시작 ***********************/
+IF @nErr = 0
+BEGIN
+	DECLARE @vLogonCD		AS NVARCHAR(30)		-- 아이디
+	DECLARE @vUserNM		AS NVARCHAR(50)		-- 이름
+	DECLARE @vPW			AS NVARCHAR(50)		-- 패스워드
+	DECLARE @sEmailID		AS NVARCHAR(50)		-- 메일아이디
+	DECLARE @vMailDomain	AS NVARCHAR(255)	-- 메일도메인
+	DECLARE @nDomainIdx		AS INT				-- 도메인 인덱스	
+
+	-- 사원 정보 조회		
+	SELECT @vLogonCD = logon_cd
+			, @sEmailID = isnull(email_id,'') 
+			, @vUserNM = user_nm
+			, @vPW=logon_pwd
+	FROM TCMG_USER 
+	WHERE user_id = @nUserID
+		
+	-- 사내통신 송신인 수정
+	UPDATE temg_innercomm_config
+	SET SenderNm = @nUserNM
+	WHERE user_id = @nUserID
+
+	-- 메일 아이디가 없으면 아이디로 사용
+	IF (LEN(@sEmailID) = 0)
+	BEGIN
+		SET @sEmailID = @vLogonCD 
+	END	
+
+	-- 메일 도메인 조회
+	SELECT @vMailDomain = c_domain 
+	FROM TCMG_CO 
+	WHERE co_id = @nCOID	
+
+	-- 도메인 인덱스 조회
+	SELECT @nDomainIdx = domain_idx	
+	FROM domain_master 
+	WHERE domain = @vMailDomain
+
+	-- 계정이 없으면 추가
+	IF LEN(@vMailDomain) > 0 AND NOT EXISTS( SELECT 1 FROM user_master WHERE user_id = @sEmailID AND domain_idx = @nDomainIdx)
+	BEGIN
+		/*센두 메일 연동하기 위해서 세팅해 주는 부분*/
+		EXEC PSM_MailUser_I @sActType = 'I', @nUserID = @nUserID, @nCoID = @nCoID
+			
+		UPDATE user_size
+		SET limit_size = @nMailSize
+			, web_hdd_limit_size = @nHDDSize
+		WHERE user_id = @sEmailID
+	END
+	ELSE IF EXISTS( SELECT 1 FROM user_master WHERE user_id = @sEmailID)
+	BEGIN
+		UPDATE user_size
+		SET limit_size = @nMailSize
+			, web_hdd_limit_size = @nHDDSize
+		WHERE user_id = @sEmailID
+	END
+		
+	IF @@ERROR > 0
+	BEGIN			
+		ROLLBACK TRAN
+		SET @nReturn = -94 -- 메일등록 중 오류 발생
+		SET @nErr	= 1
+--		RETURN @nReturn
+	END
+END
+
+IF @nErr = 0
+BEGIN
+	-- 재직여부가 퇴직일 경우
+	-- user_email_list 의check_email 값이1이면메일블럭,  0이면메일허용
+	DECLARE @HO_COUNT1 INT
+	SET @HO_COUNT1 = 0
+	-- 같은 도메인에 대해서 재직중인 카운트
+	SELECT @HO_COUNT1 = COUNT(USER_ID)
+	FROM TCMG_USERDEPT A 
+	INNER JOIN TCMG_CO B ON (A.CO_ID = B.CO_ID)
+	WHERE USER_ID = @nUserID
+	AND B.c_domain = @vMailDomain
+	AND HOLD_OFFICE NOT IN ('3')
+
+	SELECT @HO_COUNT1 = ISNULL(@HO_COUNT1, 0)
+
+	IF(@HO_COUNT1 > 0)
+	BEGIN
+		UPDATE user_email_list 
+		SET check_email = 0 
+		WHERE user_id = @sEmailID 
+		AND domain_idx = @nDomainIdx		
+	END
+	ELSE
+	BEGIN
+		UPDATE user_email_list 
+		SET check_email = 1 
+		WHERE user_id = @sEmailID 
+		AND domain_idx = @nDomainIdx
+	END		
+
+	IF @@ERROR > 0
+	BEGIN			
+		ROLLBACK TRAN
+		SET @nReturn = -94 -- 메일등록 중 오류 발생
+		SET @nErr	= 1
+--		RETURN @nReturn
+	END
+END
+		/*********************** 메일 등록 끝 ***********************/
+		/*********************** 명함 기본그룹 등록 끝 ***********************/
+IF @nErr = 0
+BEGIN
+	DECLARE @tResult TABLE (res int)
+    insert into @tResult EXEC PMP_GROUP_POP_IU @nAddrGrpId=0, @nCoId=@nCOID, @sAddrGrpNm='기본 그룹', @sAddrGrpTp='0' ,@sAddrGrpDesc = '기본 그룹', @nCreatedEditBy = @nUserID, @sYN = 'I'
+
+	IF @@ERROR > 0
+	BEGIN			
+		ROLLBACK TRAN
+		SET @nReturn = -95 -- 명함 기본그룹 등록 중 오류 발생
+		SET @nErr	= 1
+--		RETURN @nReturn
+	END
+END
+		/*********************** 명함 기본그룹 등록 끝 ***********************/
+		/*********************** 권한 등록 끝 ***********************/
+IF @nErr = 0
+BEGIN
+	DECLARE @TRole TABLE
+	(
+		idx			INT
+		, Role_ID	NVARCHAR(30)
+	)
+
+	INSERT INTO @TRole 
+	(
+		idx
+		, Role_ID
+	)
+	SELECT str_id
+			, val 
+	FROM dbo.FSMT_Split(',',@nRoleID)
+
+	DELETE TCMG_USERROLE
+	WHERE co_id = @nCoID AND user_id = @nUserID
+
+	INSERT INTO TCMG_USERROLE 
+	(
+		co_id
+		, user_id
+		, role_id
+	)
+	SELECT distinct @nCoID
+			, @nUserID
+			, role_id
+	FROM @TRole
+END
+		/*********************** 권한 등록 끝 ***********************/
+		
+		/*********************** 메일비밀번호변경 ***********************/
+IF @nErr = 0
+BEGIN
+	DECLARE @ivLogonCD	NVARCHAR(200)
+	DECLARE @ivLogonPWD NVARCHAR(50)	
+			
+	SELECT @ivLogonCD = isnull(email_id, logon_cd), @ivLogonPWD = logon_pwd
+	FROM TCMG_USER
+	WHERE user_id = @nUserID
+		
+	UPDATE user_login
+	SET passwd	= @ivLogonPWD
+	WHERE user_id = @ivLogonCD
+	/*********************** 메일비밀번호변경 ***********************/
+		
+	IF @@ERROR > 0
+	BEGIN
+		ROLLBACK TRAN;  
+--		SET @nReturn = @@ERROR
+		SET @nReturn = 0
+		SET @nErr	= 1
+--		RETURN @nReturn 
+	END
+END
+
+COMMIT TRAN
+
+SELECT @nReturn AS return_value
+
+RETURN @nReturn
