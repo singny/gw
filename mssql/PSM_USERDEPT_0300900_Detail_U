@@ -1,6 +1,6 @@
-USE [Neo_BizBox_20210107]
+USE [Neo_BizBox]
 GO
-/****** Object:  StoredProcedure [dbo].[PSM_USERDEPT_0300900_Detail_U]    Script Date: 2024-09-02 오후 4:01:52 ******/
+/****** Object:  StoredProcedure [dbo].[PSM_USERDEPT_0300900_Detail_U]    Script Date: 2024-09-02 오후 3:52:59 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
