@@ -7,13 +7,30 @@
     color: #007bff !important;
 }
 
-#tblIsoDetail td, th {
-    color: #0E4D7E;
-    padding-left : 40px;
+.tblIsoDetail th {
+    font-size :x-large;
 }
 
-#tblIsoDetail th, .font-lager {
-    font-size :x-large;
+.font-lager {
+    font-size :large;
+}
+
+#tblFunction td, #tblFunction th {
+    padding: 0.1rem !important;
+}
+
+@media (min-width: 2000px) {
+    .col-2dot5 {
+        -ms-flex: 0 0 20%;
+        flex: 0 0 20%;
+        max-width: 20%;
+    }
+
+    .col-1dot5 {
+        -ms-flex: 0 0 12%;
+        flex: 0 0 12%;
+        max-width: 12%;
+    }
 }
 </style>
 <script>
@@ -181,9 +198,18 @@ function onBtnExcelUploadClick() {
 }
 
 function onChangeSheet(sno, init = false) {
+    // 결과 내 재검색
+    var rebrowsing = $("#rebrowsing").prop('checked');
+
+    if(rebrowsing) {
+        $("#rebrowsing").prop('checked', false);
+        $("#searchCondition").val('');
+        rebrowsingHtml();
+    }
+
     $("#sno").val(sno);
 
-    $("#mode").val("CATEGORY")
+    $("#mode").val("CATEGORY");
 
     $.ajax({
         type: "POST",
@@ -311,8 +337,8 @@ function onConditionChange() {
                 html += row["categoryKind"];
                 html += '</div>'
                 html += '</td>';
-                html += '<td class="col-md-2 d-none d-md-block">';
-                html += '<div class="h-100 d-flex align-items-center">';
+                html += '<td class="col-md-2 col-1dot5 d-none d-md-block notAlign">';
+                html += '<div class="h-100 d-flex align-items-center notAlign">';
                 html += row["docCd"];
                 html += '</div>'
                 html += '</td>';
@@ -322,105 +348,134 @@ function onConditionChange() {
                 html += '<div style="font-size:smaller;color:grey">' + row["hashTxt"] + '</div>';
                 html += '</div>'
                 html += '</td>';
-                html += '<td class="col-md-2 d-none d-md-block">';
+                html += '<td class="col-md-1 d-none d-md-block">';
                 html += '<div class="h-100 d-flex align-items-center">';
-                html += row["chargeDept"];
+                html += row["chargeDept"].replace("/", "<br/>");
                 html += '</div>'
                 html += '</td>';
                 html += '<td class="col-md-1 d-none d-md-block">';
                 html += '<div class="h-100 d-flex align-items-center">';
-                html += row["chargeStaff"];
+                html += row["chargeStaff"].replace("/", "<br/>");
                 html += '</div>'
                 html += '</td>';
                 // PC
-                html += '<td class="col-md-3 d-none d-md-block">';
+                html += '<td class="col-md-3 col-2dot5 d-none d-md-block">';
                 html += '<div class="h-100 d-flex align-items-center">';
-                // 테이블로 삽입
-                html += '<table class="table-borderless">';
-                html += '<tr class="border-none">';
-                html += '<td class="text-left">Latest</td>';
-                html += '<td>:</td>';
-                html += '<td>';
-                if(row["ecmFileOid"]) {
-                    html += `<a class="iso-link" href="javascript:void(0);" onclick="previewFile('${row["ecmFileOid"]}')">`;
-                    html += '미리보기';
-                    html += '</a>';
-                } else {
-                    html += '<span style="color:grey">'
-                    html += '미리보기';
-                    html += '</span>'
-                }
-                html += '</td>';
-                html += '<td>|</td>';
-                html += '<td>';
-                if(row["ecmFileOid"]) {
-                    html += `<a class="iso-link" href="javascript:void(0);" onclick="downloadFile('${row["ecmFileOid"]}')">`;
-                    html += '다운로드';
-                    html += '</a>';
-                } else {
-                    html += '<span style="color:grey">'
-                    html += '다운로드';
-                    html += '</span>'
-                }
-                html += '</td>';
-                html += '<td></td>';
-                html += '<td></td>';
                 var isManager = $("#isManager").val();
-                if(isManager == "Y") {
-                    var viewCnt = 0;
-                    if(row['viewCnt']) {
-                        viewCnt = row['viewCnt'];
+                if(row["canDownload"] == "Y" || isManager == "Y") {
+                    html += '<table class="table-borderless" id="tblFunction">';
+                    html += '<tr class="border-none">';
+                    html += '<td class="text-left">Latest</td>';
+                    html += '<td>:</td>';
+                    html += '<td>';
+                    if(row["ecmFileOid"]) {
+                        html += `<a class="iso-link" href="javascript:void(0);" onclick="previewFile('${row["ecmFileOid"]}')">`;
+                        html += '미리보기';
+                        html += '</a>';
+                    } else {
+                        html += '<span style="color:grey">'
+                        html += '미리보기';
+                        html += '</span>'
                     }
-                    html += '<td rowspan="2" style="vertical-align: middle;text-align:center">(<span class="viewCnt">'+ viewCnt +'</span>)</td>';
-                }
-                html += '</tr>';
-                html += '<tr class="border-none">';
-                html += '<td class="text-left">ECM</td>';
-                html += '<td>:</td>';
-                html += '<td>';
-                if(row["ecmPropertyUrl"]) {
-                    html += `<a class="iso-link" href="javascript:void(0);" onclick="showEcmProperty('${row["ecmPropertyUrl"]}', '${row["ecmFileOid"]}')">`;
-                    html += '속성보기';
-                    html += '</a>';
+                    html += '</td>';
+                    html += '<td>|</td>';
+                    html += '<td>';
+                    if(row["ecmFileOid"]) {
+                        html += `<a class="iso-link" href="javascript:void(0);" onclick="downloadFile('${row["ecmFileOid"]}')">`;
+                        html += '다운로드';
+                        html += '</a>';
+                    } else {
+                        html += '<span style="color:grey">'
+                        html += '다운로드';
+                        html += '</span>'
+                    }
+                    html += '</td>';
+                    html += '<td></td>';
+                    html += '<td></td>';
+                    if(isManager == "Y") {
+                        var viewCnt = 0;
+                        if(row['viewCnt']) {
+                            viewCnt = row['viewCnt'];
+                        }
+                        html += '<td rowspan="2" style="vertical-align: middle;text-align:center">(<span class="viewCnt">'+ viewCnt +'</span>)</td>';
+                    }
+                    html += '</tr>';
+                    html += '<tr class="border-none">';
+                    html += '<td class="text-left">ECM</td>';
+                    html += '<td>:</td>';
+                    html += '<td>';
+                    if(row["ecmPropertyUrl"]) {
+                        html += `<a class="iso-link" href="javascript:void(0);" onclick="showEcmProperty('${row["ecmPropertyUrl"]}', '${row["ecmFileOid"]}')">`;
+                        html += '속성보기';
+                        html += '</a>';
+                    } else {
+                        html += '<span style="color:grey">'
+                        html += '속성보기';
+                        html += '</span>'
+                    }
+                    html += '</td>';
+                    html += '<td>|</td>';
+                    html += '<td>';
+                    var oid = encodeURIComponent(row["ecmFileOid"]);
+                    if(row["ecmFullTxt"]) {
+                        var ecmFullTxt = encodeURIComponent(row["ecmFullTxt"]);
+                        html += `<a class="iso-link isoCopy" href="javascript:void(0);" onclick="saveClipBoard('${ecmFullTxt}', this, '${oid}', 'CopyUrl')">`;
+                        html += 'URL복사';
+                        html += '</a>';
+                    } else {
+                        html += '<span style="color:grey">'
+                        html += 'URL복사';
+                        html += '</span>'
+                    }
+                    html += '</td>';
+                    html += '<td>|</td>';
+                    html += '<td class="text-left">'
+                    if(row["ecmDirPath"]) {
+                        var ecmDirPath = encodeURIComponent(row["ecmDirPath"]);
+                        html += `<a class="iso-link isoCopy" href="javascript:void(0);" onclick="saveClipBoard('${ecmDirPath}', this, '${oid}', 'CopyPath')">`;
+                        html += '폴더경로 복사'
+                        html += '</a>';
+                    } else {
+                        html += '<span style="color:grey">'
+                        html += '폴더경로 복사'
+                        html += '</span>'
+                    }
+                    html += '</td>';
+                    html += '</tr>';
+                    html += '</table>';
                 } else {
-                    html += '<span style="color:grey">'
-                    html += '속성보기';
-                    html += '</span>'
+                    html += '<table class="table-borderless">';
+                    html += '<tr class="border-none">';
+                    html += '<td>';
+                    if(row["ecmFileOid"]) {
+                        html += `<a class="iso-link" href="javascript:void(0);" onclick="previewFile('${row["ecmFileOid"]}')">`;
+                        html += '미리보기';
+                        html += '</a>';
+                    } else {
+                        html += '<span style="color:grey">'
+                        html += '미리보기';
+                        html += '</span>'
+                    }
+                    html += '</td>';
+                    // html += '<td>|</td>';
+                    // html += '<td>';
+                    // if(row["ecmFileOid"]) {
+                    //     html += `<a class="iso-link" href="javascript:void(0);" onclick="downloadFile('${row["ecmFileOid"]}')">`;
+                    //     html += '다운로드';
+                    //     html += '</a>';
+                    // } else {
+                    //     html += '<span style="color:grey">'
+                    //     html += '다운로드';
+                    //     html += '</span>'
+                    // }
+                    // html += '</td>';
+                    html += '</tr>';
+                    html += '</table>';
                 }
-                html += '</td>';
-                html += '<td>|</td>';
-                html += '<td>';
-                var oid = encodeURIComponent(row["ecmFileOid"]);
-                if(row["ecmFullTxt"]) {
-                    var ecmFullTxt = encodeURIComponent(row["ecmFullTxt"]);
-                    html += `<a class="iso-link isoCopy" href="javascript:void(0);" onclick="saveClipBoard('${ecmFullTxt}', this, '${oid}', 'CopyUrl')">`;
-                    html += 'URL복사';
-                    html += '</a>';
-                } else {
-                    html += '<span style="color:grey">'
-                    html += 'URL복사';
-                    html += '</span>'
-                }
-                html += '</td>';
-                html += '<td>|</td>';
-                html += '<td class="text-left">'
-                if(row["ecmDirPath"]) {
-                    var ecmDirPath = encodeURIComponent(row["ecmDirPath"]);
-                    html += `<a class="iso-link isoCopy" href="javascript:void(0);" onclick="saveClipBoard('${ecmDirPath}', this, '${oid}', 'CopyPath')">`;
-                    html += '폴더경로 복사'
-                    html += '</a>';
-                } else {
-                    html += '<span style="color:grey">'
-                    html += '폴더경로 복사'
-                    html += '</span>'
-                }
-                html += '</td>';
-                html += '</tr>';
-                html += '</table>';
                 html += '</div>'
                 html += '</td>';
                 // 모바일
-                html += '<td class="d-md-none d-block col-5">';
+                html += '<td class="d-md-none d-block col-5">'; 
                 html += '<div class="h-100 d-flex align-items-center">';
                 // 테이블로 삽입
                 html += '<table class="table-borderless">';
@@ -794,51 +849,55 @@ function removeSearchCondition(word, classNm) {
             <!-- Tab panes -->
             <div class="tab-content">
                 <div id="home" class="tab-pane active">
-                    <!-- <div class="row align-items-stretch">
-                        <div class="col-md p-3"> -->
-                            <img src="/gw/images/iso/iso_main2.png" usemap="#isoDocMap" style="width:80%" id="isoDocImg">
-                            <!-- <map name="isoDocMap">
-                                <area shape="rect" coords="225,15,480,74" href="javascript:void(0);" onclick="moveImgMap('전체')">
-                                <area shape="rect" coords="290,172,333,250" alt="Phone" href="#">
-                                <area shape="circle" coords="337,300,44" alt="Cup of coffee" href="#">
-                            </map>
-                            <table id="tblIsoDetail" style="margin-left:30px">
+                    <div class="row align-items-stretch">
+                        <div class="col-md p-3">
+                            <table class="tblIsoDetail">
                                 <tr>
-                                    <th>•</th>
-                                    <th>사내 표준이란</th>
+                                    <th class="pr-5">•</th>
+                                    <th>문서 구조 및 체계</th>
                                 </tr>
                                 <tr>
                                     <th></th>
-                                    <td class="font-lager">HTE 조직 내에서 일관되게 적용하는 규칙, 절차, 지침 또는 방법을 의미</td>
+                                    <td class="font-lager"><span class="pr-3">-</span>표준 문서의 제정 및 유지관리 참고</td>
                                 </tr>
+                                <tr style="height:50px"></tr>
                             </table>
+                            <img src="/gw/images/iso/iso_img.png" style="width:100%" id="isoDocImg">
                         </div>
                         <div class="col-md p-3">
-                            <table id="tblIsoDetail" style="margin-top:55px">
-                                <tr><td>&nbsp;</td><td></td></tr>
+                            <table class="tblIsoDetail">
                                 <tr>
-                                    <th>•</th>
-                                    <th>사내 표준 목적</th>
+                                    <th class="pr-5">•</th>
+                                    <th>회사 표준</th>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    <td class="font-lager"><span class="pr-3">-</span>HTE 조직 내에서 일관되게 적용하는 규칙, 절차, 지침 또는 방법을 의미</td>
+                                </tr>
+                                <tr style="height:50px"></tr>
+                                <tr>
+                                    <th class="pr-5">•</th>
+                                    <th>회사 표준 목적</th>
                                 </tr>
                                 <tr></tr>
                                 <tr>
                                     <td></td>
-                                    <td>
-                                        <b>업무 효율성</b><br/>
-                                        일관된 절차를 통해 업무를 보다 빠르고 효율적으로 수행<br/>
-                                        <b>품질 관리</b><br/>
-                                        제품이나 서비스의 품질을 일정하게 유지하고, 고객의 기대에 부응<br/>
-                                        <b>안전 및 규정 준수</b><br/>
-                                        작업 환경에서 안전을 보장하고, 법적 규제나 산업 규범을 준수<br/>
-                                        <b>일관성 유지</b><br/>
-                                        직원 간, 부서 간의 업무 방식이 일관되게 유지되어 혼란을 줄임<br/>
-                                        <b>지속적인 개선</b><br/>
-                                        표준화된 절차를 통해 개선이 필요한 부분을 쉽게 파악하고 개선
+                                    <td class="font-lager">
+                                        <span class="pr-3">-</span>업무 효율성<br/>
+                                        <span class="pr-3">&nbsp;</span>일관된 절차를 통해 업무를 보다 빠르고 효율적으로 수행<br/>
+                                        <span class="pr-3">-</span>품질 관리<br/>
+                                        <span class="pr-3">&nbsp;</span>제품이나 서비스의 품질을 일정하게 유지하고, 고객의 기대에 부응<br/>
+                                        <span class="pr-3">-</span>안전 및 규정 준수<br/>
+                                        <span class="pr-3">&nbsp;</span>작업 환경에서 안전을 보장하고, 법적 규제나 산업 규범을 준수<br/>
+                                        <span class="pr-3">-</span>일관성 유지<br/>
+                                        <span class="pr-3">&nbsp;</span>직원 간, 부서 간의 업무 방식이 일관되게 유지되어 혼란을 줄임<br/>
+                                        <span class="pr-3">-</span>지속적인 개선<br/>
+                                        <span class="pr-3">&nbsp;</span>표준화된 절차를 통해 개선이 필요한 부분을 쉽게 파악하고 개선
                                     </td>
                                 </tr>
                             </table>
                         </div>
-                    </div> -->
+                    </div>
                 </div>
                 <div id="list" class="tab-pane pt-4">
                     <div class="tableFixHead">
@@ -847,11 +906,11 @@ function removeSearchCondition(word, classNm) {
                                 <tr class="row">
                                     <th class="col-md-1 d-none d-md-block" id="category_nm"><span class="mx-2">분류</span><span class="sortIcon"></span></th>
                                     <th class="col-md-1 d-none d-md-block" id="category_kind"><span class="mx-2">구분</span><span class="sortIcon"></span></th>
-                                    <th class="col-md-2 d-none d-md-block" id="doc_cd"><span class="mx-2">Doc. No.</span><span class="sortIcon"></span></th>
+                                    <th class="col-md-2 col-1dot5 d-none d-md-block" id="doc_cd"><span class="mx-2">Doc. No.</span><span class="sortIcon"></span></th>
                                     <th class="col-md col-7" id="doc_nm"><span class="mx-2">문서 제목</span><span class="sortIcon"></span></th>
-                                    <th class="col-md-2 d-none d-md-block" id="charge_dept"><span class="mx-2">주관부서</span><span class="sortIcon"></span></th>
+                                    <th class="col-md-1 d-none d-md-block" id="charge_dept"><span class="mx-2">주관부서</span><span class="sortIcon"></span></th>
                                     <th class="col-md-1 d-none d-md-block" id="charge_staff"><span class="mx-2">담당자</span><span class="sortIcon"></span></th>
-                                    <th class="col-md-3 col-5">기능</th>
+                                    <th class="col-md-3 col-2dot5 col-5">기능</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -864,12 +923,12 @@ function removeSearchCondition(word, classNm) {
     </div>
 
     <div class="modal fade" id="modalUpload" data-backdrop="static" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog">
             <div class="modal-content">
 
                 <!-- Modal Header -->
                 <div class="modal-header">
-                    <h4 class="modal-title">엑셀 업로드</h4>
+                    <h4 class="modal-title">표준목록 업로드</h4>
                     <button type="button" class="close btn-close" data-dismiss="modal">&times;</button>
                 </div>
 
